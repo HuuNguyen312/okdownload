@@ -33,7 +33,7 @@ dependencies {
     compileOnly dep.findbugsAnnotations
 }
 
-apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
+apply from: 'maven-release-aar.gradle'
 if (hasProperty("isCI")) {
     apply from: rootProject.file('gradle/codecov.gradle')
 }
