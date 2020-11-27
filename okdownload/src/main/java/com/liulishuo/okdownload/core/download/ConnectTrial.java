@@ -54,13 +54,18 @@ import static com.liulishuo.okdownload.core.Util.VALUE_CHUNKED;
  */
 public class ConnectTrial {
     private static final String TAG = "ConnectTrial";
-    @NonNull private final DownloadTask task;
-    @NonNull private final BreakpointInfo info;
+    @NonNull
+    private final DownloadTask task;
+    @NonNull
+    private final BreakpointInfo info;
 
     private boolean acceptRange;
-    @IntRange(from = CHUNKED_CONTENT_LENGTH) private long instanceLength;
-    @Nullable private String responseEtag;
-    @Nullable private String responseFilename;
+    @IntRange(from = CHUNKED_CONTENT_LENGTH)
+    private long instanceLength;
+    @Nullable
+    private String responseEtag;
+    @Nullable
+    private String responseFilename;
     private int responseCode;
 
     public ConnectTrial(@NonNull DownloadTask task, @NonNull BreakpointInfo info) {
@@ -80,7 +85,7 @@ public class ConnectTrial {
             }
             connection.addHeader(RANGE, "bytes=0-0");
             final Map<String, List<String>> userHeader = task.getHeaderMapFields();
-            if (userHeader != null)  Util.addUserRequestHeaderField(userHeader, connection);
+            if (userHeader != null) Util.addUserRequestHeaderField(userHeader, connection);
 
             final DownloadListener listener = OkDownload.with().callbackDispatcher().dispatch();
             final Map<String, List<String>> requestProperties = connection.getRequestProperties();
@@ -102,6 +107,12 @@ public class ConnectTrial {
 
             isNeedTrialHeadMethod = isNeedTrialHeadMethodForInstanceLength(instanceLength,
                     connected);
+
+            if (isNeedTrialHeadMethod) {
+                instanceLength = Util.parseContentLength(
+                        connected.getResponseHeaderField(CONTENT_LENGTH));
+                isNeedTrialHeadMethod = instanceLength <= 0;
+            }
         } finally {
             connection.release();
         }
@@ -143,7 +154,8 @@ public class ConnectTrial {
      *
      * @return the Etag from the response header.
      */
-    @Nullable public String getResponseEtag() {
+    @Nullable
+    public String getResponseEtag() {
         return responseEtag;
     }
 
@@ -152,7 +164,8 @@ public class ConnectTrial {
      *
      * @return the filename from the 'Content-Disposition' field on the response header.
      */
-    @Nullable public String getResponseFilename() {
+    @Nullable
+    public String getResponseFilename() {
         return responseFilename;
     }
 
@@ -183,8 +196,9 @@ public class ConnectTrial {
         return "bytes".equals(acceptRanges);
     }
 
-    @Nullable private static String findFilename(DownloadConnection.Connected connected)
-        throws IOException {
+    @Nullable
+    private static String findFilename(DownloadConnection.Connected connected)
+            throws IOException {
         return parseContentDisposition(connected.getResponseHeaderField(CONTENT_DISPOSITION));
     }
 
@@ -202,7 +216,8 @@ public class ConnectTrial {
      * This header provides a filename for content that is going to be
      * downloaded to the file system. We only support the attachment type.
      */
-    @Nullable private static String parseContentDisposition(String contentDisposition)
+    @Nullable
+    private static String parseContentDisposition(String contentDisposition)
             throws IOException {
         if (contentDisposition == null) {
             return null;
@@ -213,7 +228,7 @@ public class ConnectTrial {
             Matcher m = CONTENT_DISPOSITION_QUOTED_PATTERN.matcher(contentDisposition);
             if (m.find()) {
                 fileName = m.group(1);
-            } else  {
+            } else {
                 m = CONTENT_DISPOSITION_NON_QUOTED_PATTERN.matcher(contentDisposition);
                 if (m.find()) {
                     fileName = m.group(1);
@@ -222,8 +237,8 @@ public class ConnectTrial {
 
             if (fileName != null && fileName.contains("../")) {
                 throw new DownloadSecurityException("The filename [" + fileName + "] from"
-                    + " the response is not allowable, because it contains '../', which "
-                    + "can raise the directory traversal vulnerability");
+                        + " the response is not allowable, because it contains '../', which "
+                        + "can raise the directory traversal vulnerability");
             }
 
             return fileName;
@@ -233,7 +248,8 @@ public class ConnectTrial {
         return null;
     }
 
-    @Nullable private static String findEtag(DownloadConnection.Connected connected) {
+    @Nullable
+    private static String findEtag(DownloadConnection.Connected connected) {
         return connected.getResponseHeaderField(ETAG);
     }
 
@@ -298,7 +314,7 @@ public class ConnectTrial {
         try {
             connection.setRequestMethod(METHOD_HEAD);
             final Map<String, List<String>> userHeader = task.getHeaderMapFields();
-            if (userHeader != null)  Util.addUserRequestHeaderField(userHeader, connection);
+            if (userHeader != null) Util.addUserRequestHeaderField(userHeader, connection);
 
             listener.connectTrialStart(task, connection.getRequestProperties());
             final DownloadConnection.Connected connectedForContentLength = connection.execute();
